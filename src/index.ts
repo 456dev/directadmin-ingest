@@ -25,7 +25,7 @@ function log(msg: string, env: Env, ctx: ExecutionContext, forceDiscord: boolean
 async function onCronTrigger(event: ScheduledController | null, env: Env, ctx: ExecutionContext): Promise<void> {
   // get current datetime
   const now = new Date();
-  log("Fetching emails - triggered at" + now.toISOString(), env, ctx, true);
+  log("Fetching emails - triggered at" + now.toISOString(), env, ctx);
 
   // get last successfully fetched emails stored time
   const lastTimeString = await env.STATE_KV.get("last_fetched_email_time");
@@ -75,7 +75,7 @@ async function onCronTrigger(event: ScheduledController | null, env: Env, ctx: E
   }
 
   const endTime = new Date();
-  log("done: Next fetch from " + nextStartTime.toISOString(), env, ctx, true);
+  log("done: Next fetch from " + nextStartTime.toISOString(), env, ctx);
   log("ran in " + (endTime.getTime() - now.getTime()) + "ms", env, ctx);
   ctx.waitUntil(env.STATE_KV.put("last_run_time", endTime.toISOString()));
   ctx.waitUntil(env.STATE_KV.put("last_fetched_email_time", nextStartTime.toISOString()));
@@ -168,9 +168,6 @@ export default {
 Outgoing: ${results[1].rows[0][0]}
 Last fetched email time: ${lastTimeString}
 Last run time: ${lastRunTime}`);
-    } else if (requestURL.pathname === "/" + env.FETCH_MAGIC_PATH + "/updatenow") {
-      ctx.waitUntil(onCronTrigger(null, env, ctx));
-      return new Response("started update");
     }
     return new Response("Not found", { status: 404 });
   },
