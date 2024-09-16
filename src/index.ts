@@ -41,7 +41,8 @@ async function onCronTrigger(event: ScheduledController | null, env: Env, ctx: E
     fromTime = minTime;
   }
 
-  const toTime = new Date(fromTime.getTime() + env.DIRECTADMIN_MAILLOG_FETCH_MAX);
+  const maxToTime = new Date(fromTime.getTime() + env.DIRECTADMIN_MAILLOG_FETCH_MAX);
+  const toTime = maxToTime < now ? maxToTime : now;
   log("Fetching emails from " + fromTime.toISOString() + " to " + toTime.toISOString(), env, ctx);
   const logs = await getEmailLogs(env, fromTime, toTime);
 
