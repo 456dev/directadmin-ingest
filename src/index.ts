@@ -12,7 +12,7 @@
  */
 
 import { buildLibsqlClient, InEmail, OutEmail } from "./db";
-import { EmailDeliveryState, EmailLogEntry, getEmailLogs } from "./directadmin";
+import { EmailDeliveryState, EmailLogEntry, getEmailLogs, isDeliveryStateTerminal } from "./directadmin";
 import { logToDiscord } from "./util";
 
 function log(msg: string, env: Env, ctx: ExecutionContext, forceDiscord: boolean = false) {
@@ -105,10 +105,10 @@ async function processEmails(emails: EmailLogEntry[], env: Env, ctx: ExecutionCo
       continue;
     }
     if (
-      (firstNonFullEmail === null && email.state !== EmailDeliveryState.DELIVERED && email.state !== EmailDeliveryState.UNKNOWN) ||
-      email.to.some((rcpt) => rcpt.state !== EmailDeliveryState.DELIVERED && rcpt.state !== EmailDeliveryState.UNKNOWN)
+      (firstNonFullEmail === null && !isDeliveryStateTerminal(email.state)) ||
+      email.to.some((rcpt) => !isDeliveryStateTerminal(rcpt.state))
     ) {
-      log(`Found email that is not fully delivered\n\`\`\`json\n${JSON.stringify(email, undefined, 2)}\`\`\``, env, ctx, true);
+      log(`Found email with non-terminal delivery state\n\`\`\`json\n${JSON.stringify(email, undefined, 2)}\`\`\``, env, ctx, true);
       firstNonFullEmail = new Date(email.datetime);
     }
   }
@@ -125,7 +125,9 @@ async function processEmails(emails: EmailLogEntry[], env: Env, ctx: ExecutionCo
       throw e;
     });
 
-  log(`Inserted ${dbResults.length} emails into database`, env, ctx);
+  if (dbResults.length >= 0) {
+    log(`Inserted ${dbResults.length} (${inEmails.length} in, ${outEmails.length} out) emails into database`, env, ctx, true);
+  }
 
   return firstNonFullEmail;
 }

@@ -14,9 +14,13 @@ export enum EmailDeliveryState {
   UNKNOWN = "unknown",
 }
 
+export function isDeliveryStateTerminal(state: EmailDeliveryState | string): boolean {
+  return state === EmailDeliveryState.DELIVERED || state === EmailDeliveryState.FAILED;
+}
+
 interface EmailLogRecipient {
   address: string;
-  state: string; // not enum, as i want to be as permisive as possible
+  state: string; // not enum, as i want to be as permissive as possible
   message?: string;
   return_path?: string;
 }
