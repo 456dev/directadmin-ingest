@@ -125,7 +125,7 @@ async function processEmails(emails: EmailLogEntry[], env: Env, ctx: ExecutionCo
       throw e;
     });
 
-  if (dbResults.length >= 0) {
+  if (dbResults.length > 0) {
     log(`Inserted ${dbResults.length} (${inEmails.length} in, ${outEmails.length} out) emails into database`, env, ctx, true);
   }
 
